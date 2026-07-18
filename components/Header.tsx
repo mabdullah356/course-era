@@ -1,9 +1,11 @@
-import { Search, User, GraduationCap } from "lucide-react"
+"use client"
+
+import { Search, GraduationCap } from "lucide-react"
 import Link from "next/link"
+import { UserButton, SignInButton, SignUpButton, useUser } from "@clerk/nextjs"
 
 export default function Header() {
-  const isLoggedIn = false
-  const userName = "Abdullah"
+  const { isSignedIn, user } = useUser()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white">
@@ -26,27 +28,27 @@ export default function Header() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 ml-auto shrink-0">
-          {isLoggedIn ? (
-            <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                <span className="text-xs font-semibold">
-                  {userName
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </span>
-              </div>
-              <span className="hidden sm:inline">{userName}</span>
+        <div className="flex items-center gap-3 ml-auto shrink-0">
+          {isSignedIn ? (
+            <div className="flex items-center gap-3">
+              <span className="hidden sm:inline text-sm font-medium text-gray-700">
+                {user?.fullName}
+              </span>
+              <UserButton />
             </div>
           ) : (
-            <Link
-              href="/login"
-              className="flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-            >
-              <User className="h-4 w-4" />
-              <span>Log In</span>
-            </Link>
+            <div className="flex items-center gap-2">
+              <SignInButton mode="modal">
+                <button className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                  Log In
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                  Sign Up
+                </button>
+              </SignUpButton>
+            </div>
           )}
         </div>
       </div>
