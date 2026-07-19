@@ -14,15 +14,69 @@ datasource db {
 
 
 model User {
-  id           String   @id @default(cuid())
-  clerkId      String   @unique
-  email        String   @unique
-  firstName    String
-  lastName     String
-  profilePhoto String?
-  gender       String?
-  birthday     String?
-  phone        String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String    @id @default(cuid())
+  clerkId        String    @unique
+  email          String    @unique
+  firstName      String
+  lastName       String
+  profilePhoto   String?
+  gender         String?
+  birthday       String?
+  phone          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  coursesCreated Course[]
+  enrollments    Enrollment[]
+}
+
+model Course {
+  id              String     @id @default(cuid())
+  instructorId    String
+  instructor      User       @relation(fields: [instructorId], references: [id])
+  title           String
+  description     String
+  thumbnail       String
+  totalDuration   Int        @default(0)
+  keywords        String[]
+  topics          String[]
+  price           Float
+  discount        Float      @default(0)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  sections        Section[]
+  enrollments     Enrollment[]
+}
+
+model Section {
+  id           String    @id @default(cuid())
+  courseId      String
+  course       Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title        String
+  lectureCount Int       @default(0)
+  duration     Int       @default(0)
+  order        Int
+  lectures     Lecture[]
+}
+
+model Lecture {
+  id        String  @id @default(cuid())
+  sectionId String
+  section   Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  title     String
+  type      String
+  url       String?
+  duration  Int?
+  isPreview Boolean @default(false)
+  order     Int
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  courseId   String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([courseId, userId])
 }
