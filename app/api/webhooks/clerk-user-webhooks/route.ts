@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Webhook } from "svix";
-import { prisma } from "@/lib/prisma";
 
 const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
 
@@ -51,28 +50,57 @@ export async function POST(req: NextRequest) {
 
   const eventType = event.type;
 
-  if (eventType === "user.created") {
+  if (eventType === "user.created" || eventType === "user.updated") {
     const { id, email_addresses, first_name, last_name, image_url, gender, birthday, phone_numbers } = event.data;
 
     const email = email_addresses?.[0]?.email_address ?? "";
     const phone = phone_numbers?.[0]?.phone_number ?? null;
 
     try {
-      await prisma.user.create({
-        data: {
-          clerkId: id,
-          email,
-          firstName: first_name ?? "",
-          lastName: last_name ?? "",
-          profilePhoto: image_url ?? null,
-          gender: gender ?? null,
-          birthday: birthday ?? null,
-          phone,
-        },
+      const { prisma } = await import("@/lib/prisma");
+
+      if (eventType === "user.created") {
+        await prisma.user.create({
+          data: {
+            clerkId: id,
+            email,
+            firstName: first_name ?? "",
+            lastName: last_name ?? "",
+            profilePhoto: image_url ?? null,
+            gender: gender ?? null,
+            birthday: birthday ?? null,
+            phone,
+          },
+        });
+      } else {
+        await prisma.user.update({
+          where: { clerkId: id },
+          data: {
+            email,
+            firstName: first_name ?? "",
+            lastName: last_name ?? "",
+            profilePhoto: image_url ?? null,
+            gender: gender ?? null,
+            birthday: birthday ?? null,
+            phone,
+          },
+        });
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return NextResponse.json({ error: "Database error", details: message }, { status: 500 });
+    }
+  }
+
+  if (eventType === "user.deleted") {
+    try {
+      const { prisma } = await import("@/lib/prisma");
+      await prisma.user.delete({
+        where: { clerkId: event.data.id },
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      return NextResponse.json({ error: "Failed to create user", details: message }, { status: 500 });
+      return NextResponse.json({ error: "Database error", details: message }, { status: 500 });
     }
   }
 
