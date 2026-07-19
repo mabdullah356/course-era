@@ -39,6 +39,9 @@ model Course {
   totalDuration   Int        @default(0)
   keywords        String[]
   topics          String[]
+  level           String
+  language        String     @default("English")
+  isPublished     Boolean    @default(false)
   price           Float
   discount        Float      @default(0)
   createdAt       DateTime   @default(now())
