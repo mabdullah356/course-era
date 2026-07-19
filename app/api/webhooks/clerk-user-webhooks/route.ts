@@ -20,7 +20,7 @@ interface ClerkWebhookEvent {
 
 export async function POST(req: NextRequest) {
   if (!webhookSecret) {
-    throw new Error("CLERK_WEBHOOK_SECRET is not set");
+    return NextResponse.json({ error: "CLERK_WEBHOOK_SECRET is not set" }, { status: 500 });
   }
 
   const body = await req.text();
@@ -45,8 +45,8 @@ export async function POST(req: NextRequest) {
       "svix-signature": svixSignature,
     }) as ClerkWebhookEvent;
   } catch (err) {
-    console.error("Webhook verification failed:", err);
-    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: "Webhook verification failed", details: message }, { status: 400 });
   }
 
   const eventType = event.type;
@@ -71,11 +71,10 @@ export async function POST(req: NextRequest) {
         },
       });
     } catch (err) {
-      console.error("Error creating user:", err);
-      return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
+      const message = err instanceof Error ? err.message : String(err);
+      return NextResponse.json({ error: "Failed to create user", details: message }, { status: 500 });
     }
   }
-
 
   return NextResponse.json({ received: true });
 }
