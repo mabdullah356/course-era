@@ -63,6 +63,7 @@ interface Course {
   sections: Section[];
   instructor: Instructor;
   _count: { enrollments: number };
+  isEnrolled: boolean;
 }
 
 function formatMinutes(mins: number): string {
@@ -95,6 +96,21 @@ const Course = () => {
   React.useEffect(() => {
     if (id) fetchCourse();
   }, [id]);
+
+  const [enrolling, setEnrolling] = React.useState(false);
+
+  const handleCheckout = async () => {
+    try {
+      setEnrolling(true);
+      const res = await axios.post("/api/checkout", { courseId: id });
+      if (res.data.url) {
+        window.location.href = res.data.url;
+      }
+    } catch (error) {
+      console.error(error);
+      setEnrolling(false);
+    }
+  };
 
   const toggleSection = (sectionId: string) => {
     setOpenSections((prev) => ({ ...prev, [sectionId]: !prev[sectionId] }));
@@ -300,7 +316,7 @@ const Course = () => {
                                       {formatMinutes(lecture.duration)}
                                     </span>
                                   )}
-                                  {!lecture.isPreview && (
+                                  {!lecture.isPreview && !course.isEnrolled && (
                                     <Lock className="w-3 h-3 text-gray-300" />
                                   )}
                                 </div>
@@ -335,16 +351,34 @@ const Course = () => {
                   </p>
                 )}
 
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-colors duration-200 cursor-pointer mb-3">
-                  Enroll Now
-                </button>
-                <button className="w-full border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-3 rounded-xl transition-colors duration-200 cursor-pointer mb-6">
-                  Add to Cart
-                </button>
+                {course.isEnrolled ? (
+                  <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold py-3 rounded-xl text-center mb-3">
+                    You are enrolled in this course
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleCheckout}
+                      disabled={enrolling}
+                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 rounded-xl transition-colors duration-200 cursor-pointer mb-3"
+                    >
+                      {enrolling ? "Redirecting..." : "Enroll Now"}
+                    </button>
+                    <button
+                      onClick={handleCheckout}
+                      disabled={enrolling}
+                      className="w-full border border-gray-300 hover:bg-gray-50 disabled:opacity-50 text-gray-700 font-medium py-3 rounded-xl transition-colors duration-200 cursor-pointer mb-6"
+                    >
+                      Add to Cart
+                    </button>
+                  </>
+                )}
 
-                <p className="text-center text-xs text-gray-400 mb-6">
-                  30-day money-back guarantee
-                </p>
+                {!course.isEnrolled && (
+                  <p className="text-center text-xs text-gray-400 mb-6">
+                    30-day money-back guarantee
+                  </p>
+                )}
 
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center gap-3 text-gray-600">

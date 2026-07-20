@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -13,6 +14,23 @@ export async function GET(
         { message: "Course ID is required" },
         { status: 400 }
       );
+    }
+
+    const { userId } = await auth();
+
+    let isEnrolled = false;
+
+    if (userId) {
+      const user = await prisma.user.findUnique({
+        where: { clerkId: userId },
+      });
+
+      if (user) {
+        const enrollment = await prisma.enrollment.findUnique({
+          where: { courseId_userId: { courseId: id, userId: user.id } },
+        });
+        isEnrolled = !!enrollment;
+      }
     }
 
     const course = await prisma.course.findUnique({
@@ -51,7 +69,7 @@ export async function GET(
       return NextResponse.json({ message: "Course not found" }, { status: 404 });
     }
 
-    return NextResponse.json(course);
+    return NextResponse.json({ ...course, isEnrolled });
   } catch (err) {
     console.error(err);
     return NextResponse.json(
