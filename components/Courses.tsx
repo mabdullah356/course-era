@@ -1,5 +1,6 @@
 import axios from "axios";
 import Image from "next/image";
+import Link from "next/link";
 
 interface Course {
   id: string;
@@ -89,9 +90,11 @@ export default async function Courses() {
                           </span>
                         )}
                       </div>
-                      <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors duration-200 cursor-pointer">
-                        Enroll
-                      </button>
+                      <Link href={`/course/${course.id}`}>
+                        <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors duration-200 cursor-pointer">
+                          Enroll
+                        </button>
+                      </Link>
                     </div>
                   </div>
                 </article>
