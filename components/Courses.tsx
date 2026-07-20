@@ -15,7 +15,7 @@ interface Course {
 }
 
 async function getCourses(): Promise<Course[]> {
-  const res = await axios.get("http://localhost:3000/api/courses");
+  const res = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/courses`);
   return res.data;
 }
 
